@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Visualizer</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #1e1e2e;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container */
+        .container {
+            margin: 30px auto;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        /* Header */
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* Buttons and Dropdown */
+        button, select {
+            padding: 12px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        select {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        select:hover {
+            background-color: #0056b3;
+        }
+
+        /* Bar Container */
+        .bar-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 400px;
+            border: 2px solid #ffffff;
+            margin-top: 30px;
+            background-color: #29293d;
+            padding: 10px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        /* Sorting Bars */
+        .bar {
+            width: 25px;
+            margin: 2px;
+            background: linear-gradient(to top, #ff8c00, #ff4500);
+            transition: height 0.3s ease-in-out;
+            border-radius: 5px;
+        }
+
+        /* Animation for Active Sorting */
+        .sorting {
+            animation: flash 0.5s infinite alternate;
+        }
+
+        @keyframes flash {
+            0% { background-color: yellow; }
+            100% { background-color: orange; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sorting Visualizer</h1>
+        <button onclick="generateArray()">Generate Array</button>
+        <select id="algorithm">
+            <option value="bubble_sort">Bubble Sort</option>
+            <option value="insertion_sort">Insertion Sort</option>
+            <option value="merge_sort">Merge Sort</option>
+            <option value="quick_sort">Quick Sort</option>
+        </select>
+        <button onclick="startSorting()">Sort</button>
+        <div class="bar-container" id="barContainer"></div>
+    </div>
+
+    <script>
+        let array = [];
+
+        function generateArray() {
+            array = Array.from({ length: 30 }, () => Math.floor(Math.random() * 100) + 1);
+            renderBars();
+        }
+
+        function renderBars() {
+            const container = document.getElementById("barContainer");
+            container.innerHTML = "";
+            array.forEach(value => {
+                const bar = document.createElement("div");
+                bar.classList.add("bar");
+                bar.style.height = `${value * 3}px`;
+                container.appendChild(bar);
+            });
+        }
+
+        async function startSorting() {
+            const algorithm = document.getElementById("algorithm").value;
+
+            const response = await fetch("http://127.0.0.1:5000/sort", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ array, algorithm }),
+            });
+
+            const data = await response.json();
+            const steps = data.steps;
+
+            for (let step of steps) {
+                array = step;
+                renderBars();
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        generateArray(); // Generate initial array on load
+    </script>
+</body>
+</html>
